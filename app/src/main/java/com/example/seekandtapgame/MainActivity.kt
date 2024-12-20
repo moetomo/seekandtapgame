@@ -20,6 +20,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var soundPool: SoundPool
     private var matchSoundId: Int = 0
     private var wrongSoundId: Int = 0
+    private var startSoundId: Int = 0
 
     private val itemImages = mutableListOf<Int>()
     private val targetItems = mutableListOf<Int>()
@@ -27,6 +28,7 @@ class MainActivity : AppCompatActivity() {
 
     private var correctTaps = 0
     private var startTime: Long = 0
+    private var gameStartFlag = false
 
     private val itemNames = mapOf(
         R.drawable.apple to "リンゴ",
@@ -71,6 +73,7 @@ class MainActivity : AppCompatActivity() {
 
         matchSoundId = soundPool.load(this, R.raw.match_sound, 1)
         wrongSoundId = soundPool.load(this, R.raw.wrong_sound, 1)
+        startSoundId = soundPool.load(this, R.raw.start_message, 1)
     }
 
     private fun loadItemImages() {
@@ -116,18 +119,23 @@ class MainActivity : AppCompatActivity() {
                     height = 0
                     columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
                     rowSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
-                    setMargins(2, 2, 2, 2)
+                    setMargins(1, 1, 1, 1)
                 }
                 setImageResource(imageResource)
                 setOnClickListener { handleTileClick(this, imageResource) }
             }
             gridLayout.addView(tile)
         }
-
+        soundPool.play(startSoundId, 1f, 1f, 0, 0, 1f)
         startButton.isEnabled = false
+        gameStartFlag = true
+
+        scoreTextView.text = "クリアタイム: 0 秒"
+        scoreTextView.setTextColor(Color.BLACK)
     }
 
     private fun handleTileClick(tile: HighlightableTile, imageResource: Int) {
+        if (!gameStartFlag){return}
         if (imageResource in targetItems && !targetItemStates[imageResource]!!) {
             soundPool.play(matchSoundId, 1f, 1f, 0, 0, 1f)
             tile.setHighlighted(true)
@@ -165,6 +173,7 @@ class MainActivity : AppCompatActivity() {
         scoreTextView.text = "クリアタイム: %.2f 秒".format(elapsedTime / 1000.0)
         scoreTextView.setTextColor(Color.RED)
         startButton.isEnabled = true
+        gameStartFlag = false
     }
 
     override fun onDestroy() {
